@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qiang.dao.MenuMapper">
+    <!--  查询全部的父子菜单信息  -->
+    <!-- 一对多: 查找子孙菜单 -->
+    <select id="findSubMenuListByPid" parameterType="int" resultMap="MenuResult">
+        select * from menu where parent_id = #{pid}
+    </select>
+
+    <!-- 根据pid 查询所有子分类集合 -->
+    <resultMap id="MenuResult" type="com.qiang.domain.Menu">
+        <id column="id" property="id"></id>
+        <result column="href" property="href"></result>
+        <result column="icon" property="icon"></result>
+        <result column="name" property="name"></result>
+        <result column="parent_id" property="parentId"></result>
+        <result column="description" property="description"></result>
+        <result column="orderNum" property="order_num"></result>
+        <result column="shown" property="shown"></result>
+        <result column="created_time" property="createdTime"></result>
+        <result column="updated_time" property="updatedTime"></result>
+        <result column="created_by" property="createdBy"></result>
+        <result column="updated_by" property="updatedBy"></result>
+        <collection property="subMenuList" ofType="com.lagou.domain.Menu"
+                    select="findSubMenuListByPid" column="id" ></collection>
+    </resultMap>
+
+<!--  有自动驼峰命名规则映射  <resultMap id="menu_space" type="com.qiang.domain.Menu">
+
+        <id property="id" column="id"></id>
+        <result property="parentId" column="parent_id"/>
+        <result property="href" column="href"/>
+        <result property="icon" column="icon"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="shown" column="shown"/>
+        <result property="level" column="level"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedBy" column="updated_by"/>
+    </resultMap>-->
+
+    <select id="findAllMenu" resultType="com.qiang.domain.Menu">
+        select
+            *
+        from menu
+    </select>
+
+    <insert id="saveMenu" parameterType="com.qiang.domain.Menu">
+        insert into menu(
+            parent_id,href,icon,NAME,description,order_num,shown,LEVEL,created_time,updated_time,created_by,updated_by
+        ) values (
+                             #{parentId},
+                             #{href},
+                             #{icon},
+                             #{name},
+                             #{description},
+                             #{orderNum},
+                             #{shown},
+                             #{level},
+                             #{createdTime},
+                             #{updatedTime},
+                             #{createdBy},
+                             #{updatedBy}
+                         )
+    </insert>
+
+    <update id="updateMenu" parameterType="com.qiang.domain.Menu">
+        update menu set
+                        parent_id = #{parentId},
+                        href = #{href},
+                        icon = #{icon},
+                        NAME = #{name},
+                        description = #{description},
+                        order_num = #{orderNum},
+                        shown = #{shown},
+                        LEVEL = #{level},
+                        updated_time = #{updatedTime},
+                        updated_by = #{updatedBy}
+                    where id = #{id}
+    </update>
+</mapper>

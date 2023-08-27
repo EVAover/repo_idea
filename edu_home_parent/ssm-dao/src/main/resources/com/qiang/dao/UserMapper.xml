@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qiang.dao.UserMapper">
+<!--    多条件分页查询 -->
+    <select id="findAllUserByPage" parameterType="com.qiang.domain.UserVo" resultType="com.qiang.domain.User">
+        select id,
+               NAME,
+               portrait,
+               phone,
+               PASSWORD,
+               STATUS,
+               create_time
+        from user
+        <where>
+            <if test="true">
+            and is_del != 1
+            </if>
+            <if test="username != null">
+                and name = #{username}
+            </if>
+            <if test="startCreateTime != null and endCreateTime != null">
+                and create_time BETWEEN #{startCreateTime} AND #{endCreateTime}
+            </if>
+        </where>
+    </select>
+<!--    public void updateUserStatus-->
+    <update id="updateUserStatus" parameterType="com.qiang.domain.User">
+        update user set status = #{status},update_time = #{update_time} where id = #{id}
+    </update>
+<!--    public void saveUser(User user)-->
+    <insert id="saveUser" parameterType="com.qiang.domain.User">
+        insert into user values(
+            null,#{name},#{portrait},#{phone},#{password},#{reg_ip},#{account_non_expired},
+            #{credentials_non_expired},#{account_non_locked},#{status},#{is_del},#{create_time},#{update_time})
+    </insert>
+<!--    public void updateUser(User user)-->
+    <update id="updateUser" parameterType="com.qiang.domain.User">
+        UPDATE user
+        SET
+            name = #{name},
+            portrait = #{portrait},
+            phone = #{phone},
+            password =#{password},
+            reg_ip = #{reg_ip},
+            account_non_expired = #{account_non_expired},
+            credentials_non_expired = #{credentials_non_expired},
+            account_non_locked = #{account_non_locked},
+            is_del = #{is_del}
+            status = #{status},update_time= #{update_time}
+        WHERE id = #{id}
+    </update>
+<!--    public User login(User user);-->
+    <select id="login" parameterType="com.qiang.domain.User" >
+        select * from user where phone = #{phone}
+    </select>
+
+<!--    //清空中间表public void deleteUserContextRole(Integer userId);-->
+    <delete id="deleteUserContextRole" parameterType="int">
+        delete from user_role_relation where user_id = #{userid}
+    </delete>
+<!--    //分配角色public void userContextRole(UserVo userVo);-->
+    <insert id="userContextRole" parameterType="com.qiang.domain.User_Role_relation">
+        insert into user_role_relation values (null,#{userId},#{roleId},
+                                               #{createdTime},#{updatedTime},#{createdBy},#{updatedby})
+    </insert>
+    <!--    * 1.根据ID查询用户当前角色 public List<Role> findUserRelationRoleById(Integer id);-->
+    <select id="findUserRelationRoleById" parameterType="int" resultType="com.qiang.domain.Role">
+        select
+            r.id,
+            r.code,
+            r.name,
+            r.description
+        from roles r inner join user_role_relation ur on r.id = ur.role_id inner join user u on ur.user_id = u.id
+        where u.id = #{id}
+    </select>
+<!--    * 2.根据角色集合查询父菜单(-1) public List<Menu> findParentMenuByRoleId(Integer ids);-->
+    <select id="findParentMenuByRoleId" parameterType="java.util.List" resultType="com.qiang.domain.Menu">
+        SELECT
+            DISTINCT m.*
+        FROM
+            roles r INNER JOIN role_menu_relation rm ON r.id = rm.role_id INNER JOIN menu m ON rm.menu_id = m.id
+        WHERE m.parent_id = -1  AND r.id  in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+<!--    * 3.根据Pid查询子菜单 public List<Menu> findSubMenuByPid(Integer pid);-->
+    <select id="findSubMenuByPid" parameterType="int" resultType="com.qiang.domain.Menu">
+        SELECT * FROM menu WHERE parent_id = #{pid}
+    </select>
+<!--    * 4.根据角色集合查询资源列表 public List<Resource> findResourceByRoleId(Integer ids);-->
+    <select id="findResourceByRoleId" parameterType="java.util.List" resultType="com.qiang.domain.Resource">
+        SELECT
+        re.*
+        FROM
+        roles r INNER JOIN role_resource_relation rr ON r.id = rr.role_id INNER JOIN  resource re ON rr.resource_id = re.id
+        WHERE  r.id  in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>
